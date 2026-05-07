@@ -1,15 +1,15 @@
 import React, { useContext, useEffect, useState } from 'react'
-import Nav from '../components/Nav'
+import Nav from '../components/Nav.jsx'
 import dp from "../assets/dp.webp"
 import { FiPlus } from "react-icons/fi";
 import { FiCamera } from "react-icons/fi";
-import { userDataContext } from '../context/userContext';
+import { userDataContext } from '../context/UserContext.jsx';
 import { HiPencil } from "react-icons/hi2";
-import { authDataContext } from '../context/AuthContext';
+import { authDataContext } from '../context/AuthContext.jsx';
 import axios from 'axios';
-import EditProfile from '../components/EditProfile';
-import Post from '../components/Post';
-import ConnectionButton from '../components/ConnectionButton';
+import EditProfile from '../components/EditProfile.jsx';
+import Post from '../components/Post.jsx';
+import ConnectionButton from '../components/ConnectionButton.jsx';
 function Profile() {
 
     let {userData,setuserData,edit,setEdit,postData,setPostData,profileData,setProfileData}=useContext(userDataContext)

@@ -37,7 +37,7 @@ export const signUp=async (req,res)=>{
 
     } catch (error) {
         console.log(error);
-        return res.status(500).json({message:"signup error"})
+        return res.status(500).json({message: error.message})
    
     }
 }
@@ -65,7 +65,7 @@ export const login=async (req,res)=>{
        return res.status(200).json(user)
     } catch (error) {
         console.log(error);
-        return res.status(500).json({message:"login error"})
+        return res.status(500).json({message: error.message})
     }
 }
 
@@ -75,6 +75,6 @@ export const logOut=async (req,res)=>{
         return res.status(200).json({message:"log out successfully"})
     } catch (error) {
         console.log(error);
-        return res.status(500).json({message:"logout error"})
+        return res.status(500).json({message: error.message})
     }
 }

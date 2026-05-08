@@ -148,7 +148,6 @@ Still improving the project. Core features are working, but UI and some edge cas
 * Real-time messaging
 * Better notifications system
 * UI/UX improvements
-* Deployment
 
 ---
 

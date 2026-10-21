@@ -1,14 +1,22 @@
-import React, { useContext, useRef, useState } from 'react'
-import { RxCross1 } from "react-icons/rx";
-import { userDataContext } from '../context/UserContext';
+import React,{useContext,useRef,useState} from 'react'
+import {RxCross1} from "react-icons/rx"
+import {userDataContext} from '../context/UserContext'
 import dp from "../assets/dp.webp"
-import { FiPlus } from "react-icons/fi";
-import { FiCamera } from "react-icons/fi";
-import axios from 'axios';
-import { authDataContext } from '../context/AuthContext';
-function EditProfile() {
-  let { edit, setEdit, userData, setUserData ,edit2,setEdit2} = useContext(userDataContext)
+import {FiPlus,FiCamera} from "react-icons/fi"
+import axios from 'axios'
+import {authDataContext} from '../context/AuthContext'
+
+function EditProfile(){
+  let {
+    edit,
+    setEdit,
+    userData,
+    setUserData,
+    setProfileData
+  }=useContext(userDataContext)
+
   let {serverUrl}=useContext(authDataContext)
+
   let [firstName,setFirstName]=useState(userData.firstName || "")
   let [lastName,setLastName]=useState(userData.lastName || "")
   let [userName,setUserName]=useState(userData.userName || "")
@@ -22,211 +30,530 @@ function EditProfile() {
     college:"",
     degree:"",
     fieldOfStudy:""
-
- })
- let [experience,setExperience]=useState(userData.experience || [])
-  let [newExperience,setNewExperience]=useState( {
+  })
+  let [experience,setExperience]=useState(userData.experience || [])
+  let [newExperience,setNewExperience]=useState({
     title:"",
     company:"",
     description:""
-})
+  })
 
-let [frontendProfileImage,setFrontendProfileImage]=useState(userData.profileImage || dp)
-let [backendProfileImage,setBackendProfileImage]=useState(null)
-let [frontendCoverImage,setFrontendCoverImage]=useState(userData.coverImage || null)
-let [backendCoverImage,setBackendCoverImage]=useState(null)
-let [saving,setSaving]=useState(false)
-const profileImage=useRef()
-const coverImage=useRef()
+  let [frontendProfileImage,setFrontendProfileImage]=useState(
+    userData.profileImage || dp
+  )
+  let [backendProfileImage,setBackendProfileImage]=useState(null)
+  let [frontendCoverImage,setFrontendCoverImage]=useState(
+    userData.coverImage || null
+  )
+  let [backendCoverImage,setBackendCoverImage]=useState(null)
+  let [saving,setSaving]=useState(false)
 
+  const profileImage=useRef()
+  const coverImage=useRef()
 
   function addSkill(e){
-e.preventDefault()
-if(newSkills && !skills.includes(newSkills)){
-setSkills([...skills,newSkills])
-}
-setNewSkills("")
+    e.preventDefault()
 
+    if(newSkills.trim() && !skills.includes(newSkills.trim())){
+      setSkills([...skills,newSkills.trim()])
+      setNewSkills("")
+    }
   }
 
-function removeSkill(skill){
-
-  if(skills.includes(skill)){
-    setSkills(skills.filter((s)=>s!==skill))
+  function removeSkill(skill){
+    setSkills(skills.filter((item)=>item!==skill))
   }
-  
-}
-function addEducation(e){
-  e.preventDefault()
-  if(newEducation.college && newEducation.degree && newEducation.fieldOfStudy ){
-  setEducation([...education,newEducation])
+
+  function addEducation(e){
+    e.preventDefault()
+
+    if(
+      newEducation.college.trim() ||
+      newEducation.degree.trim() ||
+      newEducation.fieldOfStudy.trim()
+    ){
+      setEducation([...education,newEducation])
+      setNewEducation({
+        college:"",
+        degree:"",
+        fieldOfStudy:""
+      })
+    }
   }
-  setNewEducation({
-    college:"",
-    degree:"",
-    fieldOfStudy:""
 
- })
-}
- function addExperience(e){
-  e.preventDefault()
-  if(newExperience.title && newExperience.company && newExperience.description ){
-  setExperience([...experience,newExperience])
+  function removeEducation(index){
+    setEducation(education.filter((_,i)=>i!==index))
   }
-  setNewExperience({
-    title:"",
-    company:"",
-    description:""
 
- })
-  
-    }
-    function removeEducation(edu){
+  function addExperience(e){
+    e.preventDefault()
 
-      if(education.includes(edu)){
-        setEducation(education.filter((e)=>e!==edu))
-      }
-      
+    if(
+      newExperience.title.trim() ||
+      newExperience.company.trim() ||
+      newExperience.description.trim()
+    ){
+      setExperience([...experience,newExperience])
+      setNewExperience({
+        title:"",
+        company:"",
+        description:""
+      })
     }
-    function removeExperience(exp){
+  }
 
-      if(experience.includes(exp)){
-        setExperience(experience.filter((e)=>e!==exp))
-      }
-      
-    }
+  function removeExperience(index){
+    setExperience(experience.filter((_,i)=>i!==index))
+  }
 
-    function handleProfileImage(e){
-     let file=e.target.files[0]
-     setBackendProfileImage(file)
-     setFrontendProfileImage(URL.createObjectURL(file))
+  const handleProfileImage=(e)=>{
+    let file=e.target.files[0]
+
+    if(file){
+      setBackendProfileImage(file)
+      setFrontendProfileImage(URL.createObjectURL(file))
     }
-    function handleCoverImage(e){
-      let file=e.target.files[0]
+  }
+
+  const handleCoverImage=(e)=>{
+    let file=e.target.files[0]
+
+    if(file){
       setBackendCoverImage(file)
       setFrontendCoverImage(URL.createObjectURL(file))
-     }
-
-const handleSaveProfile=async ()=>{
-  setSaving(true)
-  try {
-    let formdata=new FormData()
-    formdata.append("firstName",firstName)
-    formdata.append("lastName",lastName)
-    formdata.append("userName",userName)
-    formdata.append("headline",headline)
-    formdata.append("location",location)
-    formdata.append("skills",JSON.stringify(skills))
-    formdata.append("education",JSON.stringify(education))
-    formdata.append("experience",JSON.stringify(experience))
-
-    if(backendProfileImage){
-      formdata.append("profileImage",backendProfileImage)
     }
-    if(backendCoverImage){
-      formdata.append("coverImage",backendCoverImage)
-    }
-
-    let result=await axios.put(serverUrl+"/api/user/updateprofile",formdata,{withCredentials:true})
-    setUserData(result.data)
-    setSaving(false)
-    setEdit(false)
-
-  } catch (error) {
-    console.log(error);
-    setSaving(false)
   }
-}
 
+  const handleSaveProfile=async()=>{
+    try{
+      setSaving(true)
 
-  return (
-    <div className='w-full h-[100vh] fixed top-0  z-[100] flex justify-center items-center'>
+      let formData=new FormData()
 
- 
-    <input type="file" accept='image/*' hidden ref={profileImage} onChange={handleProfileImage}/>
-    <input type="file" accept='image/*' hidden ref={coverImage} onChange={handleCoverImage}/>
-      <div className='w-full h-full bg-black opacity-[0.5] absolute top-0 left-0'></div>
-      <div className='w-[90%] max-w-[500px] h-[600px] bg-white relative overflow-auto z-[200] shadow-lg rounded-lg p-[10px]' >
-        <div className='absolute top-[20px] right-[20px] cursor-pointer  ' onClick={() => setEdit(false)}><RxCross1 className='w-[25px] cursor-pointer h-[25px] text-gray-800 font-bold ' /></div>
+      formData.append("firstName",firstName)
+      formData.append("lastName",lastName)
+      formData.append("userName",userName)
+      formData.append("headline",headline)
+      formData.append("location",location)
+      formData.append("skills",JSON.stringify(skills))
+      formData.append("education",JSON.stringify(education))
+      formData.append("experience",JSON.stringify(experience))
 
+      if(backendProfileImage){
+        formData.append("profileImage",backendProfileImage)
+      }
 
-        <div className='w-full h-[150px] bg-gray-500 rounded-lg mt-[40px] overflow-hidden' onClick={()=>coverImage.current.click()}>
-          <img src={frontendCoverImage} alt="" className='w-full' />
-          <FiCamera className='absolute right-[20px] top-[60px] w-[25px] h-[25px] text-white cursor-pointer' />
+      if(backendCoverImage){
+        formData.append("coverImage",backendCoverImage)
+      }
+
+      let result=await axios.put(
+        serverUrl+"/api/user/updateprofile",
+        formData,
+        {withCredentials:true}
+      )
+
+      setUserData(result.data)
+      setProfileData(result.data)
+      setEdit(false)
+
+    }catch(error){
+      console.log(
+        "Update profile error:",
+        error.response?.data || error.message
+      )
+    }finally{
+      setSaving(false)
+    }
+  }
+
+  return(
+    <div className='fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5'>
+
+      <div className='w-full max-w-[720px] max-h-[92vh] overflow-y-auto bg-white rounded-2xl shadow-2xl'>
+
+        {/* HEADER */}
+        <div className='sticky top-0 z-20 bg-white border-b border-gray-200 px-5 sm:px-7 py-4 flex items-center justify-between'>
+          <div>
+            <h2 className='text-xl sm:text-2xl font-bold text-gray-900'>
+              Edit Profile
+            </h2>
+            <p className='text-sm text-gray-500 mt-1'>
+              Update your professional information
+            </p>
+          </div>
+
+          <button
+            type='button'
+            onClick={()=>setEdit(false)}
+            className='w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 transition'
+          >
+            <RxCross1 className='text-gray-600'/>
+          </button>
         </div>
-        <div className='w-[80px] h-[80px] rounded-full overflow-hidden absolute top-[150px] ml-[20px]' onClick={()=>profileImage.current.click()}>
-          <img src={frontendProfileImage} alt="" className='w-full h-full' />
+
+        {/* COVER */}
+        <div className='relative'>
+          <div className='h-[150px] sm:h-[190px] bg-gradient-to-r from-[#0a66c2] via-[#168bd6] to-[#38bdf8] overflow-hidden'>
+            {frontendCoverImage &&
+              <img
+                src={frontendCoverImage}
+                alt=''
+                className='w-full h-full object-cover'
+              />
+            }
+          </div>
+
+          <button
+            type='button'
+            onClick={()=>coverImage.current.click()}
+            className='absolute right-4 top-4 w-10 h-10 rounded-full bg-white/90 shadow-md flex items-center justify-center hover:bg-white transition'
+          >
+            <FiCamera className='text-gray-700'/>
+          </button>
+
+          <input
+            ref={coverImage}
+            type='file'
+            accept='image/*'
+            hidden
+            onChange={handleCoverImage}
+          />
+
+          {/* PROFILE IMAGE */}
+          <div className='absolute -bottom-[55px] left-5 sm:left-7'>
+            <div className='relative w-[110px] h-[110px] sm:w-[125px] sm:h-[125px] rounded-full bg-white p-1 shadow-xl'>
+              <img
+                src={frontendProfileImage || dp}
+                alt=''
+                className='w-full h-full rounded-full object-cover'
+              />
+
+              <button
+                type='button'
+                onClick={()=>profileImage.current.click()}
+                className='absolute right-1 bottom-1 w-9 h-9 rounded-full bg-[#0a66c2] text-white flex items-center justify-center border-2 border-white hover:bg-[#004182] transition'
+              >
+                <FiCamera/>
+              </button>
+            </div>
+
+            <input
+              ref={profileImage}
+              type='file'
+              accept='image/*'
+              hidden
+              onChange={handleProfileImage}
+            />
+          </div>
         </div>
-        <div className='w-[20px] h-[20px] bg-[#17c1ff] absolute top-[200px] left-[90px] rounded-full flex justify-center items-center cursor-pointer'>
-          <FiPlus className='text-white' />
+
+        <div className='px-5 sm:px-7 pt-[75px] pb-7 space-y-7'>
+
+          {/* BASIC INFORMATION */}
+          <section>
+            <h3 className='text-lg font-bold text-gray-900 mb-4'>
+              Basic Information
+            </h3>
+
+            <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+
+              <div>
+                <label className='text-sm font-semibold text-gray-700'>
+                  First Name
+                </label>
+                <input
+                  value={firstName}
+                  onChange={(e)=>setFirstName(e.target.value)}
+                  className='w-full mt-2 h-11 px-4 rounded-xl border border-gray-300 outline-none focus:border-[#0a66c2] focus:ring-2 focus:ring-blue-100'
+                />
+              </div>
+
+              <div>
+                <label className='text-sm font-semibold text-gray-700'>
+                  Last Name
+                </label>
+                <input
+                  value={lastName}
+                  onChange={(e)=>setLastName(e.target.value)}
+                  className='w-full mt-2 h-11 px-4 rounded-xl border border-gray-300 outline-none focus:border-[#0a66c2] focus:ring-2 focus:ring-blue-100'
+                />
+              </div>
+
+              <div>
+                <label className='text-sm font-semibold text-gray-700'>
+                  Username
+                </label>
+                <input
+                  value={userName}
+                  onChange={(e)=>setUserName(e.target.value)}
+                  className='w-full mt-2 h-11 px-4 rounded-xl border border-gray-300 outline-none focus:border-[#0a66c2] focus:ring-2 focus:ring-blue-100'
+                />
+              </div>
+
+              <div>
+                <label className='text-sm font-semibold text-gray-700'>
+                  Location
+                </label>
+                <input
+                  value={location}
+                  onChange={(e)=>setLocation(e.target.value)}
+                  className='w-full mt-2 h-11 px-4 rounded-xl border border-gray-300 outline-none focus:border-[#0a66c2] focus:ring-2 focus:ring-blue-100'
+                />
+              </div>
+
+              <div className='sm:col-span-2'>
+                <label className='text-sm font-semibold text-gray-700'>
+                  Headline
+                </label>
+                <input
+                  value={headline}
+                  onChange={(e)=>setHeadline(e.target.value)}
+                  className='w-full mt-2 h-11 px-4 rounded-xl border border-gray-300 outline-none focus:border-[#0a66c2] focus:ring-2 focus:ring-blue-100'
+                />
+              </div>
+
+              <div>
+                <label className='text-sm font-semibold text-gray-700'>
+                  Gender
+                </label>
+                <select
+                  value={gender}
+                  onChange={(e)=>setGender(e.target.value)}
+                  className='w-full mt-2 h-11 px-4 rounded-xl border border-gray-300 outline-none focus:border-[#0a66c2] focus:ring-2 focus:ring-blue-100'
+                >
+                  <option value=''>Select Gender</option>
+                  <option value='male'>Male</option>
+                  <option value='female'>Female</option>
+                  <option value='other'>Other</option>
+                </select>
+              </div>
+
+            </div>
+          </section>
+
+          {/* SKILLS */}
+          <section>
+            <h3 className='text-lg font-bold text-gray-900 mb-4'>
+              Skills
+            </h3>
+
+            <div className='flex flex-wrap gap-2 mb-4'>
+              {skills.map((skill,index)=>(
+                <div
+                  key={index}
+                  className='flex items-center gap-2 px-3 py-2 rounded-full bg-blue-50 text-[#0a66c2] border border-blue-100 font-medium'
+                >
+                  <span>{skill}</span>
+
+                  <button
+                    type='button'
+                    onClick={()=>removeSkill(skill)}
+                    className='text-[#0a66c2] hover:text-red-500'
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <form
+              onSubmit={addSkill}
+              className='flex gap-2'
+            >
+              <input
+                value={newSkills}
+                onChange={(e)=>setNewSkills(e.target.value)}
+                placeholder='Add a skill'
+                className='flex-1 h-11 px-4 rounded-xl border border-gray-300 outline-none focus:border-[#0a66c2]'
+              />
+
+              <button
+                type='submit'
+                className='px-4 h-11 rounded-xl bg-[#0a66c2] text-white hover:bg-[#004182] transition'
+              >
+                <FiPlus/>
+              </button>
+            </form>
+          </section>
+
+          {/* EDUCATION */}
+          <section>
+            <h3 className='text-lg font-bold text-gray-900 mb-4'>
+              Education
+            </h3>
+
+            <div className='space-y-3 mb-4'>
+              {education.map((edu,index)=>(
+                <div
+                  key={index}
+                  className='p-4 rounded-xl bg-gray-50 border border-gray-200 flex items-start justify-between gap-3'
+                >
+                  <div>
+                    <div className='font-semibold text-gray-900'>
+                      {edu.college}
+                    </div>
+                    <div className='text-sm text-gray-600'>
+                      {edu.degree}
+                    </div>
+                    <div className='text-sm text-gray-500'>
+                      {edu.fieldOfStudy}
+                    </div>
+                  </div>
+
+                  <button
+                    type='button'
+                    onClick={()=>removeEducation(index)}
+                    className='text-gray-400 hover:text-red-500 text-xl'
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className='grid grid-cols-1 sm:grid-cols-3 gap-3'>
+              <input
+                value={newEducation.college}
+                onChange={(e)=>setNewEducation({
+                  ...newEducation,
+                  college:e.target.value
+                })}
+                placeholder='College'
+                className='h-11 px-4 rounded-xl border border-gray-300 outline-none focus:border-[#0a66c2]'
+              />
+
+              <input
+                value={newEducation.degree}
+                onChange={(e)=>setNewEducation({
+                  ...newEducation,
+                  degree:e.target.value
+                })}
+                placeholder='Degree'
+                className='h-11 px-4 rounded-xl border border-gray-300 outline-none focus:border-[#0a66c2]'
+              />
+
+              <input
+                value={newEducation.fieldOfStudy}
+                onChange={(e)=>setNewEducation({
+                  ...newEducation,
+                  fieldOfStudy:e.target.value
+                })}
+                placeholder='Field of Study'
+                className='h-11 px-4 rounded-xl border border-gray-300 outline-none focus:border-[#0a66c2]'
+              />
+            </div>
+
+            <button
+              type='button'
+              onClick={addEducation}
+              className='mt-3 px-4 py-2 rounded-full border border-[#0a66c2] text-[#0a66c2] font-semibold hover:bg-blue-50 transition'
+            >
+              + Add Education
+            </button>
+          </section>
+
+          {/* EXPERIENCE */}
+          <section>
+            <h3 className='text-lg font-bold text-gray-900 mb-4'>
+              Experience
+            </h3>
+
+            <div className='space-y-3 mb-4'>
+              {experience.map((ex,index)=>(
+                <div
+                  key={index}
+                  className='p-4 rounded-xl bg-gray-50 border border-gray-200 flex items-start justify-between gap-3'
+                >
+                  <div>
+                    <div className='font-semibold text-gray-900'>
+                      {ex.title}
+                    </div>
+                    <div className='text-sm text-gray-600'>
+                      {ex.company}
+                    </div>
+                    <div className='text-sm text-gray-500 mt-1'>
+                      {ex.description}
+                    </div>
+                  </div>
+
+                  <button
+                    type='button'
+                    onClick={()=>removeExperience(index)}
+                    className='text-gray-400 hover:text-red-500 text-xl'
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className='space-y-3'>
+              <input
+                value={newExperience.title}
+                onChange={(e)=>setNewExperience({
+                  ...newExperience,
+                  title:e.target.value
+                })}
+                placeholder='Job Title'
+                className='w-full h-11 px-4 rounded-xl border border-gray-300 outline-none focus:border-[#0a66c2]'
+              />
+
+              <input
+                value={newExperience.company}
+                onChange={(e)=>setNewExperience({
+                  ...newExperience,
+                  company:e.target.value
+                })}
+                placeholder='Company'
+                className='w-full h-11 px-4 rounded-xl border border-gray-300 outline-none focus:border-[#0a66c2]'
+              />
+
+              <textarea
+                value={newExperience.description}
+                onChange={(e)=>setNewExperience({
+                  ...newExperience,
+                  description:e.target.value
+                })}
+                placeholder='Description'
+                rows='3'
+                className='w-full px-4 py-3 rounded-xl border border-gray-300 outline-none focus:border-[#0a66c2] resize-none'
+              />
+            </div>
+
+            <button
+              type='button'
+              onClick={addExperience}
+              className='mt-3 px-4 py-2 rounded-full border border-[#0a66c2] text-[#0a66c2] font-semibold hover:bg-blue-50 transition'
+            >
+              + Add Experience
+            </button>
+          </section>
+
         </div>
-<div className='w-full flex flex-col items-center justify-center gap-[20px] mt-[50px]' >
-  <input type="text" placeholder='firstName' className='w-full h-[50px] outline-none border-gray-600 px-[10px] py-[5px] text-[18px] border-2 rounded-lg' value={firstName} onChange={(e)=>setFirstName(e.target.value)}/>
-  <input type="text" placeholder='lastName' className='w-full h-[50px] outline-none border-gray-600 px-[10px] py-[5px] text-[18px] border-2 rounded-lg'value={lastName} onChange={(e)=>setLastName(e.target.value)}/>
-  <input type="text" placeholder='userName' className='w-full h-[50px] outline-none border-gray-600 px-[10px] py-[5px] text-[18px] border-2 rounded-lg' value={userName} onChange={(e)=>setUserName(e.target.value)}/>
-  <input type="text" placeholder='headline' className='w-full h-[50px] outline-none border-gray-600 px-[10px] py-[5px] text-[18px] border-2 rounded-lg' value={headline} onChange={(e)=>setHeadline(e.target.value)}/>
-  <input type="text" placeholder='location' className='w-full h-[50px] outline-none border-gray-600 px-[10px] py-[5px] text-[18px] border-2 rounded-lg' value={location} onChange={(e)=>setLocation(e.target.value)}/>
-  <input type="text" placeholder='gender (male/female/other)' className='w-full h-[50px] outline-none border-gray-600 px-[10px] py-[5px] text-[18px] border-2 rounded-lg' value={gender} onChange={(e)=>setGender(e.target.value)}/>
-    <div className="w-full p-[10px] border-2 border-gray-600 flex flex-col gap-[10px] rounded-lg">
-      <h1 className='text-[19px] font-semibold'>Skills</h1>
-       {skills && <div className='flex flex-col gap-[10px]'>
-       { skills.map((skill,index)=>(
-         <div key={index} className='w-full h-[40px] border-[1px] border-gray-600 bg-gray-200 rounded-lg p-[10px] flex justify-between items-center'><span>{skill}</span><RxCross1 className='w-[20px] h-[20px] cursor-pointer text-gray-800 font-bold ' onClick={()=>removeSkill(skill)}/></div>
-        ))}
-        </div>}
-      <div className='flex flex-col gap-[10px] items-start'>
-        <input type="text" placeholder='add new skill' value={newSkills} onChange={(e)=>setNewSkills(e.target.value)} className='w-full h-[50px] outline-none border-gray-600 px-[10px] py-[5px] text-[16px] border-2 rounded-lg'/>
-        <button className='w-[100%] h-[40px] rounded-full border-2 border-[#2dc0ff] text-[#2dc0ff]' onClick={addSkill}>Add</button>
-      </div>
-    </div>
-    <div className="w-full p-[10px] border-2 border-gray-600 flex flex-col gap-[10px] rounded-lg">
-      <h1 className='text-[19px] font-semibold'>Education</h1>
-       {education && <div className='flex flex-col gap-[10px]'>
-       { education.map((edu,index)=>(
-         <div key={index} className='w-full  border-[1px] border-gray-600 bg-gray-200 rounded-lg p-[10px] flex justify-between items-center'><div>
-          <div>College: {edu.college}</div>
-          <div>Degree: {edu.degree}</div>
-          <div>Field Of Study: {edu.fieldOfStudy}</div>
-         </div>
-         <RxCross1 className='w-[20px] h-[20px] cursor-pointer text-gray-800 font-bold' onClick={()=>removeEducation(edu)}/></div>
-        ))}
-        </div>}
-      <div className='flex flex-col gap-[10px] items-start'>
-        <input type="text" placeholder='college' value={newEducation.college} onChange={(e)=>setNewEducation({...newEducation,college:e.target.value})} className='w-full h-[50px] outline-none border-gray-600 px-[10px] py-[5px] text-[16px] border-2 rounded-lg'/>
-        <input type="text" placeholder='degree' value={newEducation.degree} onChange={(e)=>setNewEducation({...newEducation,degree:e.target.value})} className='w-full h-[50px] outline-none border-gray-600 px-[10px] py-[5px] text-[16px] border-2 rounded-lg'/>
-        <input type="text" placeholder='Field Of Study' value={newEducation.fieldOfStudy} onChange={(e)=>setNewEducation({...newEducation,fieldOfStudy:e.target.value})} className='w-full h-[50px] outline-none border-gray-600 px-[10px] py-[5px] text-[16px] border-2 rounded-lg'/>
-        <button className='w-[100%] h-[40px] rounded-full border-2 border-[#2dc0ff] text-[#2dc0ff]' onClick={addEducation}>Add</button>
-      </div>
-    </div>
-    <div className="w-full p-[10px] border-2 border-gray-600 flex flex-col gap-[10px] rounded-lg">
-      <h1 className='text-[19px] font-semibold'>Experience</h1>
-       {experience && <div className='flex flex-col gap-[10px]'>
-       { experience.map((exp,index)=>(
-         <div key={index} className='w-full  border-[1px] border-gray-600 bg-gray-200 rounded-lg p-[10px] flex justify-between items-center'><div>
-          <div>title: {exp.title}</div>
-          <div>company: {exp.company}</div>
-          <div>description: {exp.description}</div>
-         </div>
-         <RxCross1 className='w-[20px] h-[20px] cursor-pointer text-gray-800 font-bold' onClick={()=>removeExperience(exp)} /></div>
-        ))}
-        </div>}
-      <div className='flex flex-col gap-[10px] items-start'>
-        <input type="text" placeholder='title' value={newExperience.title} onChange={(e)=>setNewExperience({...newExperience,title:e.target.value})} className='w-full h-[50px] outline-none border-gray-600 px-[10px] py-[5px] text-[16px] border-2 rounded-lg'/>
-        <input type="text" placeholder='company' value={newExperience.company} onChange={(e)=>setNewExperience({...newExperience,company:e.target.value})} className='w-full h-[50px] outline-none border-gray-600 px-[10px] py-[5px] text-[16px] border-2 rounded-lg'/>
-        <input type="text" placeholder='description' value={newExperience.description} onChange={(e)=>setNewExperience({...newExperience,description:e.target.value})} className='w-full h-[50px] outline-none border-gray-600 px-[10px] py-[5px] text-[16px] border-2 rounded-lg'/>
-        <button className='w-[100%] h-[40px] rounded-full border-2 border-[#2dc0ff] text-[#2dc0ff]' onClick={addExperience}>Add</button>
-      </div>
-    </div>
 
-    <button className='w-[100%] h-[50px] rounded-full bg-[#24b2ff] mt-[40px] text-white' disable={saving} onClick={()=>handleSaveProfile()}>{saving?"saving...":"Save Profile"}</button>
-</div>
+        {/* SAVE */}
+        <div className='sticky bottom-0 bg-white border-t border-gray-200 px-5 sm:px-7 py-4 flex justify-end gap-3'>
+          <button
+            type='button'
+            onClick={()=>setEdit(false)}
+            disabled={saving}
+            className='px-5 py-2.5 rounded-full border border-gray-300 text-gray-700 font-semibold hover:bg-gray-100 transition disabled:opacity-50'
+          >
+            Cancel
+          </button>
 
-
-
+          <button
+            type='button'
+            onClick={handleSaveProfile}
+            disabled={saving}
+            className='px-6 py-2.5 rounded-full bg-[#0a66c2] text-white font-semibold hover:bg-[#004182] transition disabled:opacity-60'
+          >
+            {saving ? "Saving..." : "Update Profile"}
+          </button>
+        </div>
 
       </div>
-
-
     </div>
   )
 }
